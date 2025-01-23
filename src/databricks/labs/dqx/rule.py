@@ -1,19 +1,11 @@
 from enum import Enum
 from dataclasses import dataclass, field
 import functools as ft
-from typing import Any
+from typing import Any, Optional
 from collections.abc import Callable
 from pyspark.sql import Column
 import pyspark.sql.functions as F
 from databricks.labs.dqx.utils import get_column_name
-
-
-# TODO: make this configurable
-class Columns(Enum):
-    """Enum class to represent columns in the dataframe that will be used for error and warning reporting."""
-
-    ERRORS = "_errors"
-    WARNINGS = "_warnings"
 
 
 class Criticality(Enum):
@@ -22,6 +14,26 @@ class Criticality(Enum):
     WARN = "warn"
     ERROR = "error"
 
+
+class DefaultColumnNames(Enum):
+    """Enum class to represent columns in the dataframe that will be used for error and warning reporting."""
+
+    ERRORS = "_errors"
+    WARNINGS = "_warnings"
+
+
+class ColumnArguments(Enum):
+    """Enum class that is used as input parsing for custom column naming."""
+
+    ERRORS = "errors"
+    WARNINGS = "warnings"
+
+
+@dataclass(frozen=True)
+class ExtraParams:
+    """Class to represent extra parameters for DQEngine."""
+
+    column_names: Optional[dict[str, str]] = field(default_factory=dict)
 
 @dataclass(frozen=True)
 class DQRule:
