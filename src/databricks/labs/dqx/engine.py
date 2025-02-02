@@ -5,13 +5,19 @@ import inspect
 import itertools
 from pathlib import Path
 from collections.abc import Callable
-from typing import Any, Optional
-from dataclasses import dataclass, field
+from typing import Any
 import yaml
 import pyspark.sql.functions as F
 from pyspark.sql import DataFrame
-from databricks.labs.dqx.rule import DQRule, Criticality, DQRuleColSet, ChecksValidationStatus, ColumnArguments, \
-    ExtraParams, DefaultColumnNames
+from databricks.labs.dqx.rule import (
+    DQRule,
+    Criticality,
+    DQRuleColSet,
+    ChecksValidationStatus,
+    ColumnArguments,
+    ExtraParams,
+    DefaultColumnNames,
+)
 from databricks.labs.dqx.utils import deserialize_dicts
 from databricks.labs.dqx import col_functions
 from databricks.labs.blueprint.installation import Installation
@@ -47,7 +53,6 @@ class DQEngineCore(DQEngineCoreBase):
             ),
         }
 
-
     def apply_checks(self, df: DataFrame, checks: list[DQRule]) -> DataFrame:
         if not checks:
             return self._append_empty_checks(df)
@@ -79,13 +84,12 @@ class DQEngineCore(DQEngineCoreBase):
 
         return good_df, bad_df
 
-
     def apply_checks_by_metadata(
-            self, df: DataFrame, checks: list[dict], glbs: dict[str, Any] | None = None
-        ) -> DataFrame:
-            dq_rule_checks = self.build_checks_by_metadata(checks, glbs)
+        self, df: DataFrame, checks: list[dict], glbs: dict[str, Any] | None = None
+    ) -> DataFrame:
+        dq_rule_checks = self.build_checks_by_metadata(checks, glbs)
 
-            return self.apply_checks(df, dq_rule_checks)
+        return self.apply_checks(df, dq_rule_checks)
 
     @staticmethod
     def validate_checks(checks: list[dict], glbs: dict[str, Any] | None = None) -> ChecksValidationStatus:
@@ -101,10 +105,15 @@ class DQEngineCore(DQEngineCoreBase):
         return status
 
     def get_invalid(self, df: DataFrame) -> DataFrame:
-        return df.where(F.col(self._column_names[ColumnArguments.ERRORS]).isNotNull() | F.col(self._column_names[ColumnArguments.WARNINGS]).isNotNull())
+        return df.where(
+            F.col(self._column_names[ColumnArguments.ERRORS]).isNotNull()
+            | F.col(self._column_names[ColumnArguments.WARNINGS]).isNotNull()
+        )
 
     def get_valid(self, df: DataFrame) -> DataFrame:
-        return df.where(F.col(self._column_names[ColumnArguments.ERRORS]).isNull()).drop(self._column_names[ColumnArguments.ERRORS], self._column_names[ColumnArguments.WARNINGS])
+        return df.where(F.col(self._column_names[ColumnArguments.ERRORS]).isNull()).drop(
+            self._column_names[ColumnArguments.ERRORS], self._column_names[ColumnArguments.WARNINGS]
+        )
 
     @staticmethod
     def load_checks_from_local_file(path: str) -> list[dict]:
@@ -370,7 +379,12 @@ class DQEngineCore(DQEngineCoreBase):
 class DQEngine(DQEngineBase):
     """Data Quality Engine class to apply data quality checks to a given dataframe."""
 
-    def __init__(self, workspace_client: WorkspaceClient, engine: DQEngineCoreBase | None = None, extra_params: ExtraParams | None = None):
+    def __init__(
+        self,
+        workspace_client: WorkspaceClient,
+        engine: DQEngineCoreBase | None = None,
+        extra_params: ExtraParams | None = None,
+    ):
         super().__init__(workspace_client)
         self._engine = engine or DQEngineCore(workspace_client, extra_params)
 

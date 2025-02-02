@@ -1,7 +1,7 @@
 from enum import Enum
 from dataclasses import dataclass, field
 import functools as ft
-from typing import Any, Optional
+from typing import Any
 from collections.abc import Callable
 from pyspark.sql import Column
 import pyspark.sql.functions as F
@@ -33,7 +33,8 @@ class ColumnArguments(Enum):
 class ExtraParams:
     """Class to represent extra parameters for DQEngine."""
 
-    column_names: Optional[dict[str, str]] = field(default_factory=dict)
+    column_names: dict[str, str] = field(default_factory=dict)
+
 
 @dataclass(frozen=True)
 class DQRule:

@@ -5,7 +5,6 @@ from pyspark.sql import Column
 from chispa.dataframe_comparer import assert_df_equality  # type: ignore
 from databricks.labs.dqx.col_functions import is_not_null_and_not_empty, make_condition
 from databricks.labs.dqx.engine import (
-    DQRule,
     DQEngine,
     ExtraParams,
 )
@@ -496,8 +495,9 @@ def test_get_invalid_records(ws, spark):
 
     assert_df_equality(invalid_df, expected_invalid_df)
 
+
 def test_apply_checks_with_custom_column_naming(ws, spark):
-    dq_engine = DQEngine(ws, extra_params=ExtraParams(column_names = {'errors': 'ERROR', 'warnings': 'WARN'}))
+    dq_engine = DQEngine(ws, extra_params=ExtraParams(column_names={'errors': 'ERROR', 'warnings': 'WARN'}))
     test_df = spark.createDataFrame([[1, 3, 3], [2, None, 4], [None, 4, None], [None, None, None]], SCHEMA)
 
     checks = [{"criticality": "warn", "check": {"function": "col_test_check_func", "arguments": {"col_name": "a"}}}]
@@ -517,5 +517,3 @@ def test_apply_checks_with_custom_column_naming(ws, spark):
     )
 
     assert_df_equality(checked, expected, ignore_nullable=True)
-
-
