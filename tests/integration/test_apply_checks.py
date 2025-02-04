@@ -517,3 +517,25 @@ def test_apply_checks_with_custom_column_naming(ws, spark):
     )
 
     assert_df_equality(checked, expected, ignore_nullable=True)
+
+def test_custom_column_name_mappings_split_metadata(ws, spark):
+    dq_engine = DQEngine(ws, extra_params=ExtraParams(column_names={'errors': 'ERROR', 'warnings': 'WARN'}))
+    test_df = spark.createDataFrame([[1, 3, 3], [2, None, 4], [None, 4, None], [None, None, None]], SCHEMA)
+
+
+    checks = [
+        {"criticality": "warn", "check": {"function": "col_test_check_func", "arguments": {"col_name": "a"}}},
+        {"criticality": "error", "check": {"function": "is_not_null_and_not_empty", "arguments": {"col_name": "b"}}}
+    ]
+    good, bad = dq_engine.apply_checks_by_metadata_and_split(test_df, checks, globals())
+
+    assert_df_equality(good, spark.createDataFrame([
+        [1, 3, 3], [None, 4, None]
+    ], SCHEMA), ignore_nullable=True)
+
+    assert_df_equality(bad, spark.createDataFrame([
+        [2, None, 4, {"col_b_is_null_or_empty": "Column b is null or empty"}, None],
+        [None, 4, None, None, {"col_a_is_null_or_empty": "new check failed"}],
+        [None, None, None, {"col_b_is_null_or_empty": "Column b is null or empty"},
+         {"col_a_is_null_or_empty": "new check failed"}],
+    ], EXPECTED_SCHEMA_WITH_CUSTOM_NAMES))
