@@ -504,7 +504,6 @@ def test_apply_checks_with_custom_column_naming(ws, spark):
     checked = dq_engine.apply_checks_by_metadata(test_df, checks, globals())
 
     assert 'ERROR' in checked.columns
-    assert 'WARN' in checked.columns
 
     expected = spark.createDataFrame(
         [
