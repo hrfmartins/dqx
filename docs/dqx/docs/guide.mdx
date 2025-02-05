@@ -427,7 +427,7 @@ from databricks.labs.dqx.engine import (
     ExtraParams,
 )
 
-# using ExtraParams class to configure the engine with custom column names
+# customize reporting column names
 extra_parameters = ExtraParams(column_names={'errors': 'ERRORS', 'warnings': 'WARNINGS'})
 
 ws = WorkspaceClient()
