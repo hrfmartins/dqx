@@ -501,7 +501,7 @@ def test_apply_checks_with_custom_column_naming(ws, spark):
     test_df = spark.createDataFrame([[1, 3, 3], [2, None, 4], [None, 4, None], [None, None, None]], SCHEMA)
 
     checks = [{"criticality": "warn", "check": {"function": "col_test_check_func", "arguments": {"col_name": "a"}}}]
-    checked = dq_engine.apply_checks_by_metadata(test_df, checks, globals())
+    checked = dq_engine.apply_checks_by_metadata(test_df, checks)
 
 
     expected = spark.createDataFrame(
