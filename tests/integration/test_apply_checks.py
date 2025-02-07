@@ -626,12 +626,11 @@ def test_apply_checks_by_metadata_with_custom_column_naming(ws, spark):
         ),
     )
 
+
 def test_apply_checks_by_metadata_with_custom_column_naming_fallback_to_default(ws, spark):
     dq_engine = DQEngine(
         ws,
-        extra_params=ExtraParams(
-            column_names={"errors_invalid": "dq_errors", "warnings_invalid": "dq_warnings"}
-        ),
+        extra_params=ExtraParams(column_names={"errors_invalid": "dq_errors", "warnings_invalid": "dq_warnings"}),
     )
     test_df = spark.createDataFrame([[1, 3, 3], [2, None, 4], [None, 4, None], [None, None, None]], SCHEMA)
 
