@@ -602,7 +602,7 @@ def test_apply_checks_by_metadata_with_custom_column_naming(ws, spark):
 
     assert_df_equality(bad, spark.createDataFrame([
         [2, None, 4, {"col_b_is_null_or_empty": "Column b is null or empty"}, None],
-        [None, 4, None, None, {"col_a_is_null_or_empty": "new check failed"}],
+        [None, 4, None, None, {"col_a_is_null_or_empty": "Column a is null or empty"}],
         [None, None, None, {"col_b_is_null_or_empty": "Column b is null or empty"},
          {"col_a_is_null_or_empty": "Column a is null or empty"}],
     ], EXPECTED_SCHEMA_WITH_CUSTOM_NAMES))
