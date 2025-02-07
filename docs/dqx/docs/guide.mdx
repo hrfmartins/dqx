@@ -252,7 +252,7 @@ checks = DQRuleColSet( # define rule for multiple columns at once
             name="col_4_is_null_or_empty",
             criticality='error', 
             filter='col1<3',
-            check=is_not_null_and_not_empty('col4')),
+            check=is_not_null_and_not_empty("col4")),
          DQRule( # name auto-generated if not provided       
             criticality='warn', 
             check=value_is_in_list('col4', ['1', '2']))
