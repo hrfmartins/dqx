@@ -8,12 +8,11 @@ from databricks.labs.dqx.engine import (
     DQEngine,
     ExtraParams,
 )
-from databricks.labs.dqx.rule import DQRule, DQRuleColSet
-
+from databricks.labs.dqx.rule import DQRule, DQRuleColSet, ColumnArguments
 
 SCHEMA = "a: int, b: int, c: int"
 EXPECTED_SCHEMA = SCHEMA + ", _errors: map<string,string>, _warnings: map<string,string>"
-EXPECTED_SCHEMA_WITH_CUSTOM_NAMES = SCHEMA + ", ERROR: map<string,string>, WARN: map<string,string>"
+EXPECTED_SCHEMA_WITH_CUSTOM_NAMES = SCHEMA + ", dq_errors: map<string,string>, dq_warnings: map<string,string>"
 
 
 def test_apply_checks_on_empty_checks(ws, spark):
@@ -566,18 +565,25 @@ def test_get_invalid_records(ws, spark):
 
 
 def test_apply_checks_with_custom_column_naming(ws, spark):
-    dq_engine = DQEngine(ws, extra_params=ExtraParams(column_names={'errors': 'ERROR', 'warnings': 'WARN'}))
+    dq_engine = DQEngine(
+        ws,
+        extra_params=ExtraParams(
+            column_names={ColumnArguments.ERRORS.value: "dq_errors", ColumnArguments.WARNINGS.value: "dq_warnings"}
+        ),
+    )
     test_df = spark.createDataFrame([[1, 3, 3], [2, None, 4], [None, 4, None], [None, None, None]], SCHEMA)
 
-    checks = [{"criticality": "warn", "check": {"function": "col_test_check_func", "arguments": {"col_name": "a"}}}]
+    checks = [
+        {"criticality": "warn", "check": {"function": "is_not_null_and_not_empty", "arguments": {"col_name": "a"}}}
+    ]
     checked = dq_engine.apply_checks_by_metadata(test_df, checks)
 
     expected = spark.createDataFrame(
         [
             [1, 3, 3, None, None],
             [2, None, 4, None, None],
-            [None, 4, None, None, {"col_a_is_null_or_empty": "new check failed"}],
-            [None, None, None, None, {"col_a_is_null_or_empty": "new check failed"}],
+            [None, 4, None, None, {"col_a_is_null_or_empty": "Column a is null or empty"}],
+            [None, None, None, None, {"col_a_is_null_or_empty": "Column a is null or empty"}],
         ],
         EXPECTED_SCHEMA_WITH_CUSTOM_NAMES,
     )
@@ -586,7 +592,12 @@ def test_apply_checks_with_custom_column_naming(ws, spark):
 
 
 def test_apply_checks_by_metadata_with_custom_column_naming(ws, spark):
-    dq_engine = DQEngine(ws, extra_params=ExtraParams(column_names={'errors': 'ERROR', 'warnings': 'WARN'}))
+    dq_engine = DQEngine(
+        ws,
+        extra_params=ExtraParams(
+            column_names={ColumnArguments.ERRORS.value: "dq_errors", ColumnArguments.WARNINGS.value: "dq_warnings"}
+        ),
+    )
     test_df = spark.createDataFrame([[1, 3, 3], [2, None, 4], [None, 4, None], [None, None, None]], SCHEMA)
 
     checks = [
@@ -612,5 +623,40 @@ def test_apply_checks_by_metadata_with_custom_column_naming(ws, spark):
                 ],
             ],
             EXPECTED_SCHEMA_WITH_CUSTOM_NAMES,
+        ),
+    )
+
+def test_apply_checks_by_metadata_with_custom_column_naming_fallback_to_default(ws, spark):
+    dq_engine = DQEngine(
+        ws,
+        extra_params=ExtraParams(
+            column_names={"errors_invalid": "dq_errors", "warnings_invalid": "dq_warnings"}
+        ),
+    )
+    test_df = spark.createDataFrame([[1, 3, 3], [2, None, 4], [None, 4, None], [None, None, None]], SCHEMA)
+
+    checks = [
+        {"criticality": "warn", "check": {"function": "is_not_null_and_not_empty", "arguments": {"col_name": "a"}}},
+        {"criticality": "error", "check": {"function": "is_not_null_and_not_empty", "arguments": {"col_name": "b"}}},
+    ]
+    good, bad = dq_engine.apply_checks_by_metadata_and_split(test_df, checks)
+
+    assert_df_equality(good, spark.createDataFrame([[1, 3, 3], [None, 4, None]], SCHEMA), ignore_nullable=True)
+
+    assert_df_equality(
+        bad,
+        spark.createDataFrame(
+            [
+                [2, None, 4, {"col_b_is_null_or_empty": "Column b is null or empty"}, None],
+                [None, 4, None, None, {"col_a_is_null_or_empty": "Column a is null or empty"}],
+                [
+                    None,
+                    None,
+                    None,
+                    {"col_b_is_null_or_empty": "Column b is null or empty"},
+                    {"col_a_is_null_or_empty": "Column a is null or empty"},
+                ],
+            ],
+            EXPECTED_SCHEMA,
         ),
     )
