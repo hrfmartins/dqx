@@ -591,7 +591,7 @@ def test_apply_checks_by_metadata_with_custom_column_naming(ws, spark):
 
 
     checks = [
-        {"criticality": "warn", "check": {"function": "col_test_check_func", "arguments": {"col_name": "a"}}},
+        {"criticality": "warn", "check": {"function": "is_not_null_and_not_empty", "arguments": {"col_name": "a"}}},
         {"criticality": "error", "check": {"function": "is_not_null_and_not_empty", "arguments": {"col_name": "b"}}}
     ]
     good, bad = dq_engine.apply_checks_by_metadata_and_split(test_df, checks)
