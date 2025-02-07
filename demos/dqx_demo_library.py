@@ -389,5 +389,5 @@ checks = [ DQRule(
             check=is_not_null_and_not_empty('col1')),
         ]
 
-valid_and_quarantined_df = dq_engine.apply_checks_by_metadata(input_df, checks, globals())
+valid_and_quarantined_df = dq_engine.apply_checks(input_df, checks)
 display(valid_and_quarantined_df)
