@@ -372,6 +372,8 @@ from databricks.labs.dqx.engine import (
     DQRule
 )
 
+from databricks.labs.dqx.col_functions import is_not_null_and_not_empty
+
 # using ExtraParams class to configure the engine with custom column names
 extra_parameters = ExtraParams(column_names={'errors': 'ERRORS', 'warnings': 'WARNINGS'})
 
